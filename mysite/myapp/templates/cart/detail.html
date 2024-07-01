@@ -1,0 +1,58 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'cart/styles.css' %}">
+{% block title %}
+    Ваша корзина
+{% endblock %}
+{% block content %}
+{% load humanize %}
+    <h1>Ваша корзина</h1>
+    <table class="cart">
+        <thead>
+            <tr>
+                <th>Изображение</th>
+                <th>Продукт</th>
+                <th>Количество</th>
+                <th>Удалить</th>
+                <th>Цена за единицу</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in cart %}
+            {% with product=item.product %}
+                <tr>
+                    <td class="product-image">
+                        <a href="{{ product.get_absolute_url }}">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% endif %}" style="max-width: 50px; max-height: 50px;">
+                        </a>
+                    </td> 
+                    <td>{{ product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>
+                        <a href="{% url 'cart:cart_remove' product.id %}" style="background-color: rgb(34, 197, 94); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none;">Удалить</a>
+                    </td>
+                    <td class="num">${{ item.price }}</td>
+                    <td class="num">${{ item.total_price }}</td>
+                </tr>
+            {% endwith %}
+        {% endfor %}
+            <tr class="total">
+                <td colspan="5">Итого</td>
+                <td class="num">${{ cart.get_total_price }}</td>
+                <td>
+                    <form action="{% url 'cart:create_checkout_session' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <script
+                            src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                            data-key="pk_test_51OGVLEC50xAH5w5reTQMqaXtFmvDGMFNCv067AKqrwGCtSDYkSaETFSaSaOEP4leKkkljiMQBkDuXFaRNzu0rIRJ00t0bwFHzi"
+                            data-description="Оплата заказа"
+                            data-amount="{{ cart.get_total_price|floatformat:2 }}"
+                            data-locale="auto">
+                        </script>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
